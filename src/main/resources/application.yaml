@@ -7,6 +7,11 @@ spring:
     username: root
     password: root123456
   flyway:
-    baseline-on-migrate: true    # 游标还可以继续执行
-
-
+    baseline-on-migrate: true    # 有表还可以继续执行
+# JWT 配置
+# 密钥要求：>= 32 字节（HS256），生产环境从环境变量注入，绝不提交到 Git
+# 生成一个随机密钥：任意工具产生 43+ 位随机 Base64 字符串即可
+jwt:
+  secret: +uKMiusbMVDzBE+zC7z9bp1Uvud4JKyB7udZVO6G1V72Lcyd06kpMs53Dj065i7E
+  access-expire-minutes: 120   # accessToken 有效期 2 小时
+  refresh-expire-days: 7       # refreshToken 有效期 7 天
