@@ -1,3 +1,12 @@
 spring:
   application:
     name: knowledge-agent-platform
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/knowledge-agent-platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root123456
+  flyway:
+    baseline-on-migrate: true    # 游标还可以继续执行
+
+
