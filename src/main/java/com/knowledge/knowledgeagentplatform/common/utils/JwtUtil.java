@@ -9,23 +9,27 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * jwt工具类
- *  * JWT 工具类（jjwt 0.13.x API）
- *  *
- *  * 双 Token 设计：
- *  *  - accessToken：短期（默认 2 小时），每次请求携带，用于接口鉴权
- *  *  - refreshToken：长期（默认 7 天），只用于换取新 accessToken，不用于普通接口
- *  *
- *  * 安全要点：
- *  *  - HS256 要求密钥 >= 256 bit（32 字节），启动时校验
- *  *  - 密钥从配置读取，放环境变量，绝不硬编码
+ * * JWT 工具类（jjwt 0.13.x API）
+ * *
+ * * 双 Token 设计：
+ * *  - accessToken：短期（默认 2 小时），每次请求携带，用于接口鉴权
+ * *  - refreshToken：长期（默认 7 天），只用于换取新 accessToken，不用于普通接口
+ * *
+ * * 安全要点：
+ * *  - HS256 要求密钥 >= 256 bit（32 字节），启动时校验
+ * *  - 密钥从配置读取，放环境变量，绝不硬编码
  */
 @Component
 public class JwtUtil {
-    /** token 类型标识，放在 payload 里，防止拿 refreshToken 直接调业务接口 */
+    /**
+     * token 类型标识，放在 payload 里，防止拿 refreshToken 直接调业务接口
+     */
     public static final String CLAIM_TYPE = "type";
     public static final String TYPE_ACCESS = "access";
     public static final String TYPE_REFRESH = "refresh";
@@ -45,12 +49,16 @@ public class JwtUtil {
         this.refreshExpireMillis = refreshExpireDays * 24 * 60 * 60 * 1000;
     }
 
-    /** 生成 accessToken */
+    /**
+     * 生成 accessToken
+     */
     public String createAccessToken(Long userId, String username) {
         return createToken(userId, username, TYPE_ACCESS, accessExpireMillis);
     }
 
-    /** 生成 refreshToken */
+    /**
+     * 生成 refreshToken
+     */
     public String createRefreshToken(Long userId, String username) {
         return createToken(userId, username, TYPE_REFRESH, refreshExpireMillis);
     }
@@ -59,6 +67,7 @@ public class JwtUtil {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(userId))          // sub：用户唯一标识
+                .id(UUID.randomUUID().toString())         //用户jti标识
                 .claim("username", username)               // 自定义 claim
                 .claim(CLAIM_TYPE, type)
                 .issuedAt(now)                             // iat
@@ -78,7 +87,9 @@ public class JwtUtil {
                 .getPayload();
     }
 
-    /** 便捷方法：解析并校验 token 类型是否匹配 */
+    /**
+     * 便捷方法：解析并校验 token 类型是否匹配
+     */
     public Claims parseAndCheckType(String token, String expectType) {
         Claims claims = parse(token);
         if (!expectType.equals(claims.get(CLAIM_TYPE, String.class))) {
@@ -87,4 +98,12 @@ public class JwtUtil {
         return claims;
     }
 
+    /**
+     * 获取过期时间
+     *
+     * @return
+     */
+    public Duration getRefreshExpireMillis() {
+        return Duration.ofMillis(refreshExpireMillis);
+    }
 }

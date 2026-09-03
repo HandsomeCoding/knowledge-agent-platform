@@ -140,6 +140,14 @@
             <version>0.13.0</version>
             <scope>runtime</scope>
         </dependency>
+
+<!--        密码加密-->
+        <!-- BCrypt 密码加密（只引 crypto 模块，不拉整个 Security）——已启用：
+     PasswordEncoderConfig 定义 bean，注册 encode / 登录 matches -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

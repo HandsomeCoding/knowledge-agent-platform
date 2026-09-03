@@ -10,6 +10,7 @@ CREATE TABLE `app_user`  (
   `user_password` varchar(255)  NOT NULL COMMENT '用户密码',
   `usr_phone` varchar(32)  NOT NULL COMMENT '用户电话',
   `user_email` varchar(32)  NULL DEFAULT NULL COMMENT '用户邮箱',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-正常 1-已删除',
   PRIMARY KEY (`id` DESC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
@@ -26,6 +27,7 @@ CREATE TABLE `document`  (
   `knowledge_base_id` bigint NOT NULL COMMENT '归属知识库id',
   `process_status` varchar(32)  NOT NULL COMMENT '文档处理状态',
   `document_content` mediumtext  NULL COMMENT '文档全文  目前支持16m',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-正常 1-已删除',
   PRIMARY KEY (`id` DESC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
@@ -37,6 +39,7 @@ CREATE TABLE `document_chunk`  (
   `chunk_sort` int NOT NULL COMMENT '文件块个数',
   `content` text  NULL COMMENT '文件块内容',
   `chunk_sum` int NOT NULL COMMENT '文件块总数',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-正常 1-已删除',
   PRIMARY KEY (`id` DESC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
@@ -46,8 +49,9 @@ CREATE TABLE `knowledge_base`  (
   `id` bigint NOT NULL COMMENT '主键id',
   `create_time` datetime NOT NULL COMMENT '创建时间',
   `update_time` datetime NOT NULL COMMENT '修改时间',
-  `knowledage_name` varchar(255) NOT NULL COMMENT '知识库名称',
+  `knowledge_name` varchar(255) NOT NULL COMMENT '知识库名称',
   `belong_id` bigint NOT NULL COMMENT '归属人id',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-正常 1-已删除',
   PRIMARY KEY (`id` DESC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 

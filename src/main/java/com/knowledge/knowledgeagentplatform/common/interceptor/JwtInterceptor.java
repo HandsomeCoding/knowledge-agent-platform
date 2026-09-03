@@ -2,13 +2,12 @@ package com.knowledge.knowledgeagentplatform.common.interceptor;
 
 import com.knowledge.knowledgeagentplatform.common.context.UserContext;
 import com.knowledge.knowledgeagentplatform.common.exception.BusinessException;
-import com.knowledge.knowledgeagentplatform.common.exception.Result;
 import com.knowledge.knowledgeagentplatform.common.utils.JwtUtil;
+import com.knowledge.knowledgeagentplatform.security.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -20,8 +19,11 @@ public class JwtInterceptor  implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
 
-    public JwtInterceptor(JwtUtil jwtUtil) {
+private final TokenBlacklistService tokenBlacklistService;
+    public JwtInterceptor(JwtUtil jwtUtil,TokenBlacklistService tokenBlacklistService) {
+
         this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -38,6 +40,10 @@ public class JwtInterceptor  implements HandlerInterceptor {
         // 2. 验签 + 过期校验 + 类型校验（refreshToken 不能调业务接口）
         try {
             Claims claims = jwtUtil.parseAndCheckType(token, JwtUtil.TYPE_ACCESS);
+            //校验是否在黑名单
+            if(tokenBlacklistService.isBlocked(claims.getId())){
+                throw new BusinessException(401,"当前用户token已过期,请重新登录");
+            }
             Long userId = Long.valueOf(claims.getSubject());
             String username = claims.get("username", String.class);
             UserContext.set(new UserContext.LoginUser(userId, username));

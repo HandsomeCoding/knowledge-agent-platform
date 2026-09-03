@@ -1,10 +1,6 @@
 package com.knowledge.knowledgeagentplatform.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -51,12 +47,16 @@ public class KnowledgeBase implements Serializable {
     /**
      * 知识库名称
      */
-    @TableField("knowledage_name")
-    private String knowledageName;
+    @TableField("knowledge_name")
+    private String knowledgeName;
 
     /**
      * 归属人id
      */
     @TableField("belong_id")
     private Long belongId;
+
+    @TableLogic
+    @TableField("deleted")// MP 识别逻辑删除字段
+    private Integer deleted;
 }

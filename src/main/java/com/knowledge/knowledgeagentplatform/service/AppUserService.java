@@ -1,5 +1,7 @@
 package com.knowledge.knowledgeagentplatform.service;
 
+import com.knowledge.knowledgeagentplatform.controller.param.AddUserParam;
+import com.knowledge.knowledgeagentplatform.controller.param.UpdateUserParam;
 import com.knowledge.knowledgeagentplatform.entity.AppUser;
 import com.baomidou.mybatisplus.spring.service.IService;
 
@@ -12,5 +14,9 @@ import com.baomidou.mybatisplus.spring.service.IService;
  * @since 2026-09-01
  */
 public interface AppUserService extends IService<AppUser> {
+
+    void addUser(AddUserParam addUserParam);
+
+    void updateUser(UpdateUserParam updateUserParam);
 
 }

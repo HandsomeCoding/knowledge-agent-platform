@@ -8,6 +8,18 @@ spring:
     password: root123456
   flyway:
     baseline-on-migrate: true    # 有表还可以继续执行
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # password: 有密码则配置；生产环境走环境变量
+      # 连接池配置（有 Lettuce Pool 时需引 commons-pool2）
+      # lettuce:
+      #   pool:
+      #     max-active: 8
+      #     max-idle: 8
+      #     min-idle: 0
+
 # JWT 配置
 # 密钥要求：>= 32 字节（HS256），生产环境从环境变量注入，绝不提交到 Git
 # 生成一个随机密钥：任意工具产生 43+ 位随机 Base64 字符串即可

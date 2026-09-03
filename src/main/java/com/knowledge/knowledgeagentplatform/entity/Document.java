@@ -1,10 +1,6 @@
 package com.knowledge.knowledgeagentplatform.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -77,4 +73,8 @@ public class Document implements Serializable {
      */
     @TableField("document_content")
     private String documentContent;
+
+    @TableLogic
+    @TableField("deleted")// MP 识别逻辑删除字段
+    private Integer deleted;
 }
