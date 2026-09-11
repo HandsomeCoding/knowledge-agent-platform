@@ -25,7 +25,7 @@ CREATE TABLE `document`  (
   `document_name` varchar(255)  NOT NULL COMMENT '文件名',
   `document_path` varchar(255)  NULL DEFAULT NULL COMMENT '文件位置',
   `knowledge_base_id` bigint NOT NULL COMMENT '归属知识库id',
-  `process_status` varchar(32)  NOT NULL COMMENT '文档处理状态',
+  `process_status` tinyint(1)  NOT NULL  COMMENT '文档处理状态',
   `document_content` mediumtext  NULL COMMENT '文档全文  目前支持16m',
   `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-正常 1-已删除',
   PRIMARY KEY (`id` DESC) USING BTREE
@@ -39,6 +39,7 @@ CREATE TABLE `document_chunk`  (
   `chunk_sort` int NOT NULL COMMENT '文件块个数',
   `content` text  NULL COMMENT '文件块内容',
   `chunk_sum` int NOT NULL COMMENT '文件块总数',
+  `document_id` bigint NOT NULL COMMENT '文件id',
   `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-正常 1-已删除',
   PRIMARY KEY (`id` DESC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;

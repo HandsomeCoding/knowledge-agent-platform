@@ -1,6 +1,8 @@
 package com.knowledge.knowledgeagentplatform.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.knowledge.knowledgeagentplatform.common.enums.DocumentSourceType;
+import com.knowledge.knowledgeagentplatform.common.enums.ProcessStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author whw
@@ -66,7 +68,7 @@ public class Document implements Serializable {
      * 文档处理状态
      */
     @TableField("process_status")
-    private String processStatus;
+    private ProcessStatus processStatus;
 
     /**
      * 文档全文  目前支持16m
@@ -77,4 +79,24 @@ public class Document implements Serializable {
     @TableLogic
     @TableField("deleted")// MP 识别逻辑删除字段
     private Integer deleted;
+
+    /**
+     *
+     * 数据来源  上传或者 新建
+     */
+    @TableField("source_type")
+    private DocumentSourceType sourceType;
+
+    @TableField("content_version")
+    private Integer contentVersion;
+
+    @TableField("document_type")
+    private String documentType;
+
+
+    /**
+     * md5 hash 校验文本是否改变
+     */
+    @TableField("content_hash")
+    private String contentHash;
 }

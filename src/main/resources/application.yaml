@@ -8,6 +8,16 @@ spring:
     password: root123456
   flyway:
     baseline-on-migrate: true    # 有表还可以继续执行
+    baseline-version: 0
+  mybatis-plus:
+    configuration:
+      default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler   #开启枚举
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl   # 控制台看 SQL，调试期开着
+    global-config:
+      db-config:
+        logic-delete-field: deleted   # 全局逻辑删除（@TableLogic 字段）
+        logic-delete-value: 1
+        logic-not-delete-value: 0
   data:
     redis:
       host: localhost
@@ -19,6 +29,10 @@ spring:
       #     max-active: 8
       #     max-idle: 8
       #     min-idle: 0
+  servlet:
+    multipart:
+      max-file-size: 20MB        # 单文件上限（知识库上传）
+      max-request-size: 25MB     # 单请求总上限
 
 # JWT 配置
 # 密钥要求：>= 32 字节（HS256），生产环境从环境变量注入，绝不提交到 Git
@@ -27,3 +41,8 @@ jwt:
   secret: +uKMiusbMVDzBE+zC7z9bp1Uvud4JKyB7udZVO6G1V72Lcyd06kpMs53Dj065i7E
   access-expire-minutes: 120   # accessToken 有效期 2 小时
   refresh-expire-days: 7       # refreshToken 有效期 7 天
+
+# 知识库文件上传（档1：本地磁盘）
+app:
+  upload:
+    dir: ./upload                # 相对启动目录；生产建议绝对路径并挂独立磁盘

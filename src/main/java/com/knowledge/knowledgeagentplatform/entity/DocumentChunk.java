@@ -48,7 +48,7 @@ public class DocumentChunk implements Serializable {
      * 文件块个数
      */
     @TableField("chunk_sort")
-    private String chunkSort;
+    private Integer chunkSort;
 
     /**
      * 文件块内容
@@ -60,7 +60,13 @@ public class DocumentChunk implements Serializable {
      * 文件块总数
      */
     @TableField("chunk_sum")
-    private String chunkSum;
+    private Integer chunkSum;
+
+    @TableField("document_id")
+    private Long documentId;
+
+
+
 
     @TableLogic
     @TableField("deleted")// MP 识别逻辑删除字段
