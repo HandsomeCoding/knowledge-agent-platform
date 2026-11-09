@@ -33,7 +33,7 @@ public class AppUserController {
     @PostMapping("/updateUser")
     public Result<String> updateUser(@RequestBody @Valid UpdateUserParam updateUserParam) {
         appUserService.updateUser(updateUserParam);
-        return Result.success("用户注册成功");
+        return Result.success("用户修改成功");
     }
 
 }

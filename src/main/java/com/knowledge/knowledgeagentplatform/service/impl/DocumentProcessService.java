@@ -2,6 +2,7 @@ package com.knowledge.knowledgeagentplatform.service.impl;
 
 import com.knowledge.knowledgeagentplatform.common.exception.BusinessException;
 import com.knowledge.knowledgeagentplatform.common.utils.DocumentSplitUtils;
+import lombok.RequiredArgsConstructor;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
