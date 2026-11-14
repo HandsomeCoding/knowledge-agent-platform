@@ -19,4 +19,6 @@ public interface DocumentChunkService extends IService<DocumentChunk> {
 
     void updateDocumentChunks(List<String> chunks,Long documentId);
 
+    void rebuildDocumentChunks(List<String> chunks,Long documentId);
+
 }

@@ -17,10 +17,12 @@ import com.knowledge.knowledgeagentplatform.entity.Document;
 import com.knowledge.knowledgeagentplatform.entity.DocumentChunk;
 import com.knowledge.knowledgeagentplatform.entity.KnowledgeBase;
 import com.knowledge.knowledgeagentplatform.mapper.DocumentMapper;
+import com.knowledge.knowledgeagentplatform.mapper.KnowledgeBaseMapper;
 import com.knowledge.knowledgeagentplatform.service.DocumentChunkService;
 import com.knowledge.knowledgeagentplatform.service.DocumentService;
 import com.knowledge.knowledgeagentplatform.service.FileStorageService;
 import com.knowledge.knowledgeagentplatform.service.KnowledgeBaseService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -47,23 +49,25 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
     private final DocumentChunkService documentChunkService;
 
 
-    private final DocumentProcessService documentProcessService;
-
-
     private final FileStorageService fileStorageService;
 
 
     private final KnowledgeBaseService knowledgeBaseService;
+    private final ProcessService processService;
+
+    private final KnowledgeBaseMapper knowledgeBaseMapper;
+
 
     public DocumentServiceImpl(DocumentMapper documentMapper, DocumentChunkService documentChunkService,
-                               DocumentProcessService documentProcessService,
-                               FileStorageService fileStorageService,
-                               KnowledgeBaseService knowledgeBaseService) {
+                               KnowledgeBaseMapper knowledgeBaseMapper,
+                               @Qualifier("minIOFileStorageService") FileStorageService fileStorageService,
+                               KnowledgeBaseService knowledgeBaseService, ProcessService processService) {
         this.documentMapper = documentMapper;
         this.documentChunkService = documentChunkService;
-        this.documentProcessService = documentProcessService;
+        this.knowledgeBaseMapper = knowledgeBaseMapper;
         this.fileStorageService = fileStorageService;
         this.knowledgeBaseService = knowledgeBaseService;
+        this.processService = processService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -95,20 +99,20 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
      * @param knowledgeId
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void uploadDocument(MultipartFile multipartFile, Long knowledgeId) {
         if (multipartFile.isEmpty()) throw new BusinessException("文件不能为空");
         //上传文件到本地/OSS
         String filePath = fileStorageService.save(multipartFile);
 
-        //解析文件得到数据
-        String content = documentProcessService.extractText(multipartFile);
+        //解析文件得到数据   耗时，放到异步里面
+//        String content = documentProcessService.extractText(multipartFile);
 
         //组装参数
         Document document = getDocument(multipartFile.getOriginalFilename(), knowledgeId, filePath);
         //保存参数和切片
         this.save(document);
-        documentChunkService.saveDocumentChunks(DocumentSplitUtils.split(content), document.getId());
+        processService.process(document.getId(), UserContext.getUserId());
+//        documentChunkService.saveDocumentChunks(DocumentSplitUtils.split(content), document.getId());
 
     }
 
@@ -120,7 +124,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         KnowledgeBase knowledgeBase = knowledgeBaseService.lambdaQuery().eq(KnowledgeBase::getId, updateDocumentParam.knowledgeBaseId())
                 .eq(KnowledgeBase::getBelongId, UserContext.getUserId()).one();
 
-        if (knowledgeBase == null) throw new BusinessException(403,"文档不存在或无权访问");
+        if (knowledgeBase == null) throw new BusinessException(403, "文档不存在或无权访问");
         //校验文档可存在
         Document document = this.lambdaQuery().eq(Document::getId, updateDocumentParam.id())
                 .eq(Document::getKnowledgeBaseId, updateDocumentParam.knowledgeBaseId())
@@ -134,6 +138,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         if (newHash.equals(document.getContentHash()) && nameChanged) {
             return;
         }
+
         boolean update = this.lambdaUpdate()
                 .set(Document::getDocumentName, nameChanged ? document.getDocumentName() : updateDocumentParam.documentName())
                 .set(Document::getDocumentContent, normalize)
@@ -145,11 +150,12 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         if (!update) {
             throw new BusinessException(404, "文档不存在或无权操作");
         }
-        //hash改变了再重新生成切片
-        if (!newHash.equals(document.getContentHash())) {
-            documentChunkService.updateDocumentChunks(DocumentSplitUtils.split(updateDocumentParam.documentContent()),
-                    updateDocumentParam.id());
-        }
+        //hash改变了再重新生成切片   改成异步 方式耗时
+//        if (!newHash.equals(document.getContentHash())) {
+//            documentChunkService.updateDocumentChunks(DocumentSplitUtils.split(updateDocumentParam.documentContent()),
+//                    updateDocumentParam.id());
+//        }
+        processService.rebuildchunks(updateDocumentParam.documentContent(), updateDocumentParam.id());
 
     }
 
@@ -178,7 +184,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         KnowledgeBase knowledgeBase = knowledgeBaseService.lambdaQuery().eq(KnowledgeBase::getId, knowledgeId)
                 .eq(KnowledgeBase::getBelongId, UserContext.getUserId()).one();
 
-        if (knowledgeBase == null) throw new BusinessException(403,"知识库不存在或者权限不足");
+        if (knowledgeBase == null) throw new BusinessException(403, "知识库不存在或者权限不足");
         List<Document> list = this.lambdaQuery().eq(Document::getKnowledgeBaseId, knowledgeId)
                 .list();
         return list.stream().map(DocumentBaseVo::from).toList();
@@ -196,12 +202,42 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         //鉴权
         KnowledgeBase knowledgeBase = knowledgeBaseService.lambdaQuery().eq(KnowledgeBase::getId, document.getKnowledgeBaseId())
                 .eq(KnowledgeBase::getBelongId, UserContext.getUserId()).one();
-        if (knowledgeBase == null) throw new BusinessException(403,"知识库不存在或者权限不足");
+        if (knowledgeBase == null) throw new BusinessException(403, "知识库不存在或者权限不足");
 
         DocumentInfoVo documentInfoVo = new DocumentInfoVo();
         BeanCopyUtil.copyProperty(document, documentInfoVo);
         return documentInfoVo;
     }
+
+    @Override
+    public void retry(Long docId) {
+        //验权
+        Document document = getAndVerifyOwnership(docId);
+        if (document == null) {
+            throw new BusinessException(500, "当前文档id不存在");
+        }
+        this.lambdaUpdate().set(Document::getProcessStatus, ProcessStatus.PROCESSING)
+                .eq(Document::getId, document.getId())
+                .update();
+        processService.process(docId, UserContext.getUserId());
+
+    }
+
+
+    private Document getAndVerifyOwnership(Long id) {
+        // 第一跳：查文档
+        Document doc = documentMapper.selectById(id);
+        if (doc == null) {
+            throw new BusinessException(404, "文档不存在");
+        }
+        // 第二跳：顺着层级链验归属
+        KnowledgeBase kb = knowledgeBaseMapper.selectById(doc.getKnowledgeBaseId());
+        if (!kb.getBelongId().equals(UserContext.getUserId())) {
+            throw new BusinessException(403, "无权操作该文档");   // ← 就是这行在挡越权
+        }
+        return doc;
+    }
+
 
     /**
      * 拼装Document参数
@@ -215,7 +251,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         Document document = new Document();
         document.setKnowledgeBaseId(knowledgeId);
         document.setSourceType(DocumentSourceType.UPLOAD);
-        document.setProcessStatus(ProcessStatus.COMPLETED);
+        document.setProcessStatus(ProcessStatus.PROCESSING);
         //获取文件尾
         if (fileName == null || fileName.isBlank()) throw new BusinessException("文件解析错误，文件名为空");
         int index = fileName.lastIndexOf(".");
@@ -223,6 +259,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, Document> i
         document.setDocumentName(fileName.substring(0, index));
         document.setDocumentPath(filePath);
         document.setContentVersion(1);
+        document.setRetryCount(0);
         return document;
     }
 

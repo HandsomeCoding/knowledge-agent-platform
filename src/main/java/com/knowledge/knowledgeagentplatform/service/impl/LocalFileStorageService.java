@@ -52,7 +52,7 @@ public class LocalFileStorageService implements FileStorageService {
         // {月份目录}/{uuid}.{后缀} —— 文件名与用户输入彻底无关
         String relative = LocalDate.now().format(MONTH_DIR) + "/" + UUID.randomUUID() + "." + ext.toLowerCase();
 
-        Path target = resolve(relative);
+        Path target = Path.of(resolve(relative));
         try {
             Files.createDirectories(target.getParent());
             // transferTo 比 getInputStream+copy 少一次内存拷贝（容器会把 tmp 文件直接移动）
@@ -64,22 +64,22 @@ public class LocalFileStorageService implements FileStorageService {
     }
 
     @Override
-    public Path resolve(String relativePath) {
+    public String resolve(String relativePath) {
         // normalize 后必须仍以 rootDir 开头，防止 "../" 逃逸出上传目录
         Path path = rootDir.resolve(relativePath).normalize();
         if (!path.startsWith(rootDir)) {
             throw new BusinessException(400, "非法的文件路径");
         }
-        return path;
+        return path.toString();
     }
 
     @Override
     public void delete(String relativePath) {
         try {
-            Files.deleteIfExists(resolve(relativePath));
+            Files.deleteIfExists(Path.of(resolve(relativePath)));
         } catch (IOException e) {
             // 删除失败不影响业务（孤儿文件可接受，手动清理），不向上抛
-            log.warn("删除文件名为 ： " + relativePath + "报错 报错信息为"+ e.getMessage());
+            log.warn("删除文件名为 ： " + relativePath + "报错 报错信息为" + e.getMessage());
             throw new BusinessException("删除文件名为 ： " + relativePath + "报错,请核实");
         }
     }

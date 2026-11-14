@@ -4,6 +4,15 @@ import lombok.Data;
 
 /**
  * 针对方法返回结果
+ *  200  成功    400业务统一失败     401未登录 404查询不到   403无权
+ *
+ *  public interface ErrorCode {
+ *     int BAD_REQUEST = 400;
+ *     int UNAUTHORIZED = 401;
+ *     int FORBIDDEN = 403;
+ *     int NOT_FOUND = 404;
+ * }
+ * // 用：throw new BusinessException(ErrorCode.FORBIDDEN, "无权操作该文档");
  *
  * @param <T>
  */

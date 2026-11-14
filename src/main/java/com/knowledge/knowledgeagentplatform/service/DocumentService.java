@@ -34,4 +34,6 @@ public interface DocumentService extends IService<Document> {
     List<DocumentBaseVo> getDocumentByKnowledgeId(Long knowledgeId);
 
     DocumentInfoVo getDocumentById(Long id);
+
+    void retry(Long docId);
 }

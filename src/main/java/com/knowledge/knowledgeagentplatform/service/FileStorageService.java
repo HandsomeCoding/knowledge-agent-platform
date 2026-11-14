@@ -2,6 +2,8 @@ package com.knowledge.knowledgeagentplatform.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+
 
 /**
  * 文件存储抽象（档1：本地磁盘实现，档2 起换 MinIO/OSS 只加实现类不动调用方）
@@ -18,7 +20,7 @@ public interface FileStorageService {
     String save(MultipartFile file);
 
     /** 按相对路径取文件的绝对路径（预览/解析时用） */
-    java.nio.file.Path resolve(String relativePath);
+   String resolve(String relativePath);
 
     /** 删除文件（逻辑删除文档时清理物理文件用，静默失败可接受） */
     void delete(String relativePath);

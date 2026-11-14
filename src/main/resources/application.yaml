@@ -46,3 +46,9 @@ jwt:
 app:
   upload:
     dir: ./upload                # 相对启动目录；生产建议绝对路径并挂独立磁盘
+
+minio:
+  endpoint: http://127.0.0.1:9000
+  access-key: minioadmin
+  secret-key: minioadmin123
+  bucket-name: knowledge-files

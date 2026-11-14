@@ -99,4 +99,18 @@ public class Document implements Serializable {
      */
     @TableField("content_hash")
     private String contentHash;
+
+    /**
+     * 重试次数
+     */
+    @TableField("retry_count")
+    private Integer retryCount;
+
+    /**
+     * 报错信息
+     */
+    @TableField("error_msg")
+    private String errorMsg;
+
+
 }

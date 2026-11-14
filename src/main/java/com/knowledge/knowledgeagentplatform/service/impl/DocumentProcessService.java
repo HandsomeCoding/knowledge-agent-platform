@@ -26,10 +26,10 @@ import java.util.List;
 public class DocumentProcessService {
 
     /**
-     * 解析文件为纯文本
+     * 解析文件
      *
      * @param file 上传的原文件
-     * @return 清洗后的纯文本（可直接进切片器）
+     * @return 解析后的文件内容
      */
     public String extractText(MultipartFile file) {
         try (InputStream in = file.getInputStream()) {
@@ -49,7 +49,7 @@ public class DocumentProcessService {
             }
 
             // 清洗后返回，调用方直接拿去切片：TextSplitter.split(text)
-            return DocumentSplitUtils.normalize(raw);
+            return raw;
 
         } catch (BusinessException e) {
             throw e;

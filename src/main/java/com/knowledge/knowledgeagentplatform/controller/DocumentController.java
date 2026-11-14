@@ -74,5 +74,12 @@ public class DocumentController {
         return Result.success(documentService.getDocumentById(id));
     }
 
+    //文件切片失败重试接口
+    @PostMapping("/documents/{id}/retry")
+    public Result<String> retry(@PathVariable Long id){
+        documentService.retry(id);
+        return Result.success("操作成功,文件正在重新切片");
+    }
+
 
 }
